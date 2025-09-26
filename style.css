@@ -1,0 +1,17 @@
+body {
+    font-family: 'Lucida Console', monospace;
+    background-color: #0a0a23;
+    margin: 0px;
+    padding: 20px;
+    color: #ffffff;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #ffffff;
+}
+
+a {
+    color: #ffffff;
+}
