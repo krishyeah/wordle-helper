@@ -15,3 +15,69 @@ h1 {
 a {
     color: #ffffff;
 }
+
+#wordle-board {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.letter-input {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 2px solid #333;
+    border-radius: 4px;
+}
+
+.color-bar {
+    margin-top: 4px;
+    width: 60px;
+    height: 12px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.color-bar.gray {
+    background-color: #999;
+}
+
+.color-bar.yellow {
+    background-color: #c9b458;
+}
+
+.color-bar.green {
+    background-color: #6aaa64;
+}
+
+.letter-input.gray {
+  background-color: #999;
+  color: white;
+}
+
+.letter-input.yellow {
+  background-color: #c9b458;
+  color: white;
+}
+
+.letter-input.green {
+  background-color: #6aaa64;
+  color: white;
+}
