@@ -81,3 +81,38 @@ a {
   background-color: #6aaa64;
   color: white;
 }
+
+button {
+    display: block;
+    background-color: #f5f6f7;
+    font-size: 16px;
+    border-radius: 4px;
+    padding: 10px 20px;
+    color: #0a0a23;
+    margin: 0 auto;
+    margin-top: 20px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #3b3b4f;
+    color: #d0d0d5;
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffcccc;
+  color: #000;
+  padding: 15px 20px; /* Adjust to taste */
+  border: 2px solid #ff0000;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+  min-width: 250px;  /* Optional */
+}
