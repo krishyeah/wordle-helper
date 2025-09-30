@@ -12,5 +12,5 @@ A simple web tool that helps solve Wordle puzzles by recommending the next best 
 - Click "Submit" to get suggestions
 
 ## Links
-[Github Source Code](https://github.com/krishyeah/wordle-helper)
-[My Other Projects](https://krishyeah.github.io/projects/)
+- [Github Source Code](https://github.com/krishyeah/wordle-helper)
+- [My Other Projects](https://krishyeah.github.io/projects/)
