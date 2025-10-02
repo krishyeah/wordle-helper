@@ -45,6 +45,19 @@ a {
     text-transform: uppercase;
     border: 2px solid #333;
     border-radius: 4px;
+    background-color: #999;
+}
+
+.letter-input:disabled {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 2px solid #333;
+    border-radius: 4px;
+    background-color: #3b3b4f;
 }
 
 .color-bar {
@@ -53,6 +66,15 @@ a {
     height: 12px;
     border-radius: 2px;
     cursor: pointer;
+}
+
+.color-bar:disabled {
+    margin-top: 4px;
+    width: 60px;
+    height: 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    background-color: #3b3b4f;
 }
 
 .color-bar.gray {

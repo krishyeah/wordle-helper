@@ -101,30 +101,125 @@ document.querySelectorAll(".color-bar").forEach(bar => {
 function checkWords() {
     const inputs = document.querySelectorAll(".letter-input");
     const words = [];
+    const colors = [];
     let i = 0;
 
-    while (inputs[i].value !== "") {
+    while (i < inputs.length && inputs[i].value !== "") {
         let word = [];
+        let color_row = [];
 
         for (let j = 0; j < 5; j++) {
-            if (inputs[i + j].value === "") {
+            const input = inputs[i + j];
+            const letter = input.value.toUpperCase();
+
+            if (letter === "") {
                 showPopup('Enter a 5 letter word');
                 break;
             }
-            word.push(inputs[i + j].value);
+
+            const colorBar = input.nextElementSibling;
+            if (colorBar.classList.contains("green")) {
+                color_row.push("green");
+            } else if (colorBar.classList.contains("yellow")) {
+                color_row.push("yellow");
+            } else {
+                color_row.push("gray");
+            }
+            word.push(letter);
         }
 
-        let word_str = word.join("");
+        const word_str = word.join("");
 
-        if (!valid_words.has(word_str)) {
+        if (!valid_words.has(word_str.toLowerCase())) {
             showPopup('Word not in Wordle dictionary');
             break;
         }
 
         i += 5;
         words.push(word_str);
+        colors.push(color_row);
     }
-    console.log(words);
+
+    console.log("words:", words);
+    console.log("colors:", colors);
+
+    const suggestions = get_wordle_suggestions(words, colors);
+    console.log("suggestions:", suggestions);
+}
+
+// Generate suggestions
+function get_wordle_suggestions(user_words, user_colors) {
+    // Update dictionary for remaining words
+    const current_valid_words = update_dictionary(valid_words, user_words, user_colors)
+    // Calculate letter weights for remaining words
+    // Rank updated diciontary by weights
+    // Return top 5 suggestions
+    return current_valid_words;
+}
+
+// Update dictionary for remaining words
+function update_dictionary(valid_words, user_words, user_colors) {
+    if (user_words.length == 0) {
+        return valid_words;
+    }
+    
+    var constraints = {};
+    for (let i = "A".charCodeAt(0); i <= "Z".charCodeAt(0); i++) {
+        const letter = String.fromCharCode(i);
+        constraints[letter] = {
+            min: 0,
+            max: Infinity,
+            required: new Set(),
+            forbidden: new Set()
+        };
+    }
+
+    for (let i = 0; i < user_words.length; i++) {
+        update_constraints(user_words[i], user_colors[i], constraints);
+    }
+    console.log("constraints:", constraints);
+
+    const current_valid_words = valid_words;
+
+    return Array.from(current_valid_words.values()).slice(0, 5);
+}
+
+// Update constraints for filtering dictionary words
+function update_constraints(guess, feedback, constraints) {
+    const accounted = {};
+
+    for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i].toUpperCase();
+        const fb = feedback[i];
+
+        if (fb === "green") {
+            constraints[letter].min += 1;
+            constraints[letter].required.add(i);
+            accounted[letter] = (accounted[letter] || 0) + 1;
+        }
+
+        if (fb === "yellow") {
+            constraints[letter].min += 1;
+            constraints[letter].forbidden.add(i);
+            accounted[letter] = (accounted[letter] || 0) + 1;
+        }
+    }
+
+    for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i].toUpperCase();
+        const fb = feedback[i];
+        
+        if (fb === "gray") {
+            const minSoFar = constraints[letter].min;
+            const used = accounted[letter] || 0;
+
+            if (used === 0) {
+                constraints[letter].max = 0;
+            } else {
+                constraints[letter].max = minSoFar;
+            }
+        }
+    }
 }
 
 // Popup display and closing
