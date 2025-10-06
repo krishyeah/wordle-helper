@@ -145,6 +145,33 @@ function checkWords() {
 
     const suggestions = get_wordle_suggestions(words, colors);
     console.log("suggestions:", suggestions);
+
+    unlockNextRow(words.length);
+}
+
+function unlockNextRow(currentRowCount) {
+    const rows = document.querySelectorAll(".row");
+    const nextRowIndex = currentRowCount;
+
+    if (nextRowIndex >= rows.length) {
+        console.warn("No more rows to unlock.");
+        return;
+    }
+
+    // Disable previous row
+    if (nextRowIndex > 0) {
+        const prevInputs = rows[nextRowIndex - 1].querySelectorAll("input");
+        prevInputs.forEach(input => input.disabled = true);
+    }
+
+    const nextRow = rows[nextRowIndex];
+    if (!nextRow) return;
+
+    const nextInputs = nextRow.querySelectorAll("input");
+    if (nextInputs.length === 0) return;
+
+    nextInputs.forEach(input => input.disabled = false);
+    nextInputs[0].focus();
 }
 
 // Generate suggestions
@@ -152,6 +179,7 @@ function get_wordle_suggestions(user_words, user_colors) {
     // Update dictionary for remaining words
     const current_valid_words = update_dictionary(valid_words, user_words, user_colors)
     // Calculate letter weights for remaining words
+    
     // Rank updated diciontary by weights
     // Return top 5 suggestions
     return current_valid_words;
@@ -159,67 +187,131 @@ function get_wordle_suggestions(user_words, user_colors) {
 
 // Update dictionary for remaining words
 function update_dictionary(valid_words, user_words, user_colors) {
-    if (user_words.length == 0) {
-        return valid_words;
-    }
-    
-    var constraints = {};
-    for (let i = "A".charCodeAt(0); i <= "Z".charCodeAt(0); i++) {
-        const letter = String.fromCharCode(i);
-        constraints[letter] = {
-            min: 0,
-            max: Infinity,
-            required: new Set(),
-            forbidden: new Set()
-        };
+    if (user_words.length === 0) return valid_words;
+
+    const constraints = update_constraints(user_words, user_colors);
+    const filtered = new Set();
+
+    for (const word of valid_words) {
+        const lower = word.toLowerCase();
+        let valid = true;
+
+        // Positional checks
+        for (let j = 0; j < 5; j++) {
+            const letter = lower[j];
+            if (constraints.required_positions[j] && letter !== constraints.required_positions[j]) {
+                valid = false;
+                break;
+            }
+            if (constraints.forbidden_positions[j].has(letter)) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (!valid) continue;
+
+        // Count occurrences
+        const counts = {};
+        for (const ch of lower) counts[ch] = (counts[ch] || 0) + 1;
+
+        // Check letter count limits
+        for (const [ch, range] of Object.entries(constraints.letterCounts)) {
+            const n = counts[ch] || 0;
+            if (n < range.min || n > range.max) {
+                valid = false;
+                break;
+            }
+        }
+
+        // Check required letters exist
+        for (const l of constraints.required_letters) {
+            if (!lower.includes(l)) {
+                valid = false;
+                break;
+            }
+        }
+
+        // Fully forbidden letters (never appear at all)
+        for (const l of constraints.forbidden_letters) {
+            if (lower.includes(l)) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (valid) filtered.add(word);
     }
 
-    for (let i = 0; i < user_words.length; i++) {
-        update_constraints(user_words[i], user_colors[i], constraints);
-    }
-    console.log("constraints:", constraints);
-
-    const current_valid_words = valid_words;
-
-    return Array.from(current_valid_words.values()).slice(0, 5);
+    console.log("Filtered words:", filtered.size);
+    return Array.from(filtered).slice(0, 20);
 }
 
-// Update constraints for filtering dictionary words
-function update_constraints(guess, feedback, constraints) {
-    const accounted = {};
+// Build and update constraints for filtering dictionary words based on user guesses
+function update_constraints(user_words, user_colors) {
+    const constraints = {
+        required_positions: Array(5).fill(null),
+        forbidden_positions: Array.from({ length: 5 }, () => new Set()),
+        required_letters: new Set(),
+        forbidden_letters: new Set(),
+        letterCounts: {} // e.g. { 'p': { min: 1, max: 2 } }
+    };
 
-    for (let i = 0; i < guess.length; i++) {
-        const letter = guess[i].toUpperCase();
-        const fb = feedback[i];
+    for (let i = 0; i < user_words.length; i++) {
+        const guess = user_words[i].toLowerCase();
+        const feedback = user_colors[i];
+        const counted = {}; // track per-guess letter occurrences
 
-        if (fb === "green") {
-            constraints[letter].min += 1;
-            constraints[letter].required.add(i);
-            accounted[letter] = (accounted[letter] || 0) + 1;
+        // First pass: handle greens
+        for (let j = 0; j < 5; j++) {
+            const letter = guess[j];
+            const color = feedback[j];
+
+            if (color === "green") {
+                constraints.required_positions[j] = letter;
+                constraints.required_letters.add(letter);
+                counted[letter] = (counted[letter] || 0) + 1;
+
+                constraints.letterCounts[letter] = constraints.letterCounts[letter] || { min: 0, max: 5 };
+                constraints.letterCounts[letter].min = Math.max(constraints.letterCounts[letter].min, counted[letter]);
+            }
         }
 
-        if (fb === "yellow") {
-            constraints[letter].min += 1;
-            constraints[letter].forbidden.add(i);
-            accounted[letter] = (accounted[letter] || 0) + 1;
+        // Second pass: handle yellows
+        for (let j = 0; j < 5; j++) {
+            const letter = guess[j];
+            const color = feedback[j];
+
+            if (color === "yellow") {
+                constraints.forbidden_positions[j].add(letter);
+                constraints.required_letters.add(letter);
+                counted[letter] = (counted[letter] || 0) + 1;
+
+                constraints.letterCounts[letter] = constraints.letterCounts[letter] || { min: 0, max: 5 };
+                constraints.letterCounts[letter].min = Math.max(constraints.letterCounts[letter].min, counted[letter]);
+            }
         }
-    }
 
-    for (let i = 0; i < guess.length; i++) {
-        const letter = guess[i].toUpperCase();
-        const fb = feedback[i];
-        
-        if (fb === "gray") {
-            const minSoFar = constraints[letter].min;
-            const used = accounted[letter] || 0;
+        // Third pass: handle grays (after greens/yellows are counted)
+        for (let j = 0; j < 5; j++) {
+            const letter = guess[j];
+            const color = feedback[j];
 
-            if (used === 0) {
-                constraints[letter].max = 0;
-            } else {
-                constraints[letter].max = minSoFar;
+            if (color === "gray") {
+                const used = counted[letter] || 0;
+
+                // If we've already confirmed this letter appears, cap it at that count
+                if (constraints.letterCounts[letter]) {
+                    constraints.letterCounts[letter].max = constraints.letterCounts[letter].min;
+                } else {
+                    constraints.letterCounts[letter] = { min: 0, max: 0 };
+                    constraints.forbidden_letters.add(letter);
+                }
             }
         }
     }
+
+    return constraints;
 }
 
 // Popup display and closing
