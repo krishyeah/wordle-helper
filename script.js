@@ -178,11 +178,60 @@ function unlockNextRow(currentRowCount) {
 function get_wordle_suggestions(user_words, user_colors) {
     // Update dictionary for remaining words
     const current_valid_words = update_dictionary(valid_words, user_words, user_colors)
-    // Calculate letter weights for remaining words
     
+    // Calculate letter weights for remaining words
+    const letterCounts = {};
+    let totalCount = 0;
+
+    for (const word of current_valid_words) {
+        for (const letter of word) {
+            letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+            totalCount++;
+        }
+    }
+
+    for (let letter of Object.keys(letterCounts)) {
+        letterCounts[letter] = letterCounts[letter] / totalCount;
+    }
+
+    console.log("letterCounts:", letterCounts);
+    console.log("totalCount:", totalCount);
+
     // Rank updated diciontary by weights
+    const word_scores = {};
+    for (const word of current_valid_words) {
+        let score = 0;
+        let letter_dict = {};
+
+        for (const letter of word) {
+            letter_dict[letter] = (letter_dict[letter] || 0) + 1;
+        }
+
+        for (const letter of Object.keys(letter_dict)) {
+            score = score + (1.25 ** letter_dict[letter] * letterCounts[letter]);
+        }
+
+        word_scores[word] = score;
+    }
+
+    console.log(word_scores);
+    
     // Return top 5 suggestions
-    return current_valid_words;
+    // Create items array
+    var items = Object.keys(word_scores).map(function(key) {
+        return [key, word_scores[key]];
+    });
+
+    // Sort the array based on the second element
+    items.sort(function(first, second) {
+        return second[1] - first[1];
+    });
+
+    // Create a new array with only the first 5 items
+    const suggestions = items.map(row => row[0]).slice(0, 5);
+    console.log("suggestions:", suggestions);
+
+    return suggestions;
 }
 
 // Update dictionary for remaining words
@@ -244,7 +293,7 @@ function update_dictionary(valid_words, user_words, user_colors) {
     }
 
     console.log("Filtered words:", filtered.size);
-    return Array.from(filtered).slice(0, 20);
+    return filtered;
 }
 
 // Build and update constraints for filtering dictionary words based on user guesses
