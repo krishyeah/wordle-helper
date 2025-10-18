@@ -138,3 +138,43 @@ button:hover {
   z-index: 1000;
   min-width: 250px;  /* Optional */
 }
+
+#suggestions-container {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* centers all children horizontally */
+  text-align: center;   /* centers the text content itself */
+}
+
+#suggestions-container h3 {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #ffffff;  /* or whatever matches your theme */
+}
+
+#suggestions-list {
+  display: flex;
+  justify-content: center;  /* centers items in the row */
+  flex-wrap: wrap;           /* wraps if too many to fit */
+  gap: 10px;                 /* spacing between items */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#suggestions-list li {
+  background-color: #444;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: transform 0.15s ease;
+}
+
+#suggestions-list li:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}

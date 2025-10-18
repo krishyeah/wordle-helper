@@ -144,9 +144,20 @@ function checkWords() {
     console.log("colors:", colors);
 
     const suggestions = get_wordle_suggestions(words, colors);
-    console.log("suggestions:", suggestions);
+    displaySuggestions(suggestions);
 
     unlockNextRow(words.length);
+}
+
+function displaySuggestions(suggestions) {
+    const list = document.getElementById("suggestions-list");
+    list.innerHTML = ""; // clear old ones
+
+    for (const word of suggestions) {
+        const li = document.createElement("li");
+        li.textContent = word.toUpperCase();
+        list.appendChild(li);
+    }
 }
 
 function unlockNextRow(currentRowCount) {
